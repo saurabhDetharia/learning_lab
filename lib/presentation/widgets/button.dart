@@ -82,7 +82,6 @@ class _ButtonState extends ConsumerState<Button> {
     }
 
     final background = widget.backgroundColor ?? LearningLabTheme.teal;
-    final offset = _isPressed ? 2.0 : 7.0;
 
     return SizedBox(
       width: width,
@@ -114,7 +113,7 @@ class _ButtonState extends ConsumerState<Button> {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 110),
               curve: Curves.easeOut,
-              top: offset - 5,
+              top: _isPressed ? 5 : 0,
               left: 0,
               right: 0,
               height: height,
