@@ -1,57 +1,42 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:learning_lab/utils/extensions/context_extension.dart';
-import 'package:learning_lab/utils/helpers/app_helpers.dart';
 
 import '../../../application/provider/learning_lab_app_provider.dart';
 import '../../../gen/fonts.gen.dart';
 import '../../../utils/enums/app_enums.dart';
+import '../../../utils/helpers/app_helpers.dart';
 import '../../../values/app_colors.dart';
 import '../../../values/constants.dart';
+import '../../../values/learning_lab_theme.dart';
 import '../../widgets/button.dart';
 import '../categories/provider/categories_screen_provider.dart';
 
 class DragDropGameScreen extends ConsumerStatefulWidget {
-  const DragDropGameScreen({
-    super.key,
-  });
+  const DragDropGameScreen({super.key});
 
   @override
   ConsumerState<DragDropGameScreen> createState() => _DragDropGameScreenState();
 }
 
 class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
-  // List of draggable items with their respective colors
-  final Map _draggableItems = {};
+  final Map<dynamic, dynamic> _draggableItems = {};
+  final Map<dynamic, dynamic> _correctTargets = {};
+  final Map<dynamic, bool> itemDropped = {};
+  final Map<dynamic, bool> itemCorrectlyPlaced = {};
 
-  // List of corresponding correct target colors for each item
-  final Map _correctTargets = {};
-
-  // Select category to show the title,
-  // and to load items.
   late Categories _category;
-
-  // For scale animation
   late double _scale;
   Timer? _timer;
-
-  // Map to track the item drop status
-  Map itemDropped = {};
-  Map itemCorrectlyPlaced = {};
 
   @override
   void initState() {
     super.initState();
-
-    // Get the categories and load items accordingly.
-    var _screenNotifier = ref.read(screenNotifier.notifier);
-    _category = (_screenNotifier.args as Categories);
-
+    _category = ref.read(screenNotifier.notifier).args as Categories;
     _initialise();
   }
 
@@ -63,325 +48,331 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch the current scale value from the provider
     _scale = ref.watch(scaleProvider);
+    return ColoredBox(
+      color: LearningLabTheme.cream,
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final landscape = constraints.maxWidth > constraints.maxHeight;
+            final compact = constraints.maxHeight < 500;
+            final horizontalPadding = constraints.maxWidth < 600 ? 14.0 : 28.0;
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Title
-          _getTitleRowWidget,
-
-          SizedBox(height: 10),
-
-          // Multiple draggable items
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
-            children: _draggableItems.entries.map((color) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: AnimatedScale(
-                  scale: _scale,
-                  duration: AppConstants.shortAnimationDuration,
-                  child: Draggable(
-                    data: color.key,
-                    // Passing the color as data
-                    child: color.key.toString().endsWith('.svg')
-                        ? SvgPicture.asset(
-                            color.key,
-                            width: 100,
-                            height: 100,
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                compact ? 8 : 16,
+                horizontalPadding,
+                compact ? 10 : 18,
+              ),
+              child: Column(
+                children: [
+                  _buildHeader(compact),
+                  SizedBox(height: compact ? 8 : 16),
+                  Expanded(
+                    child: landscape
+                        ? Row(
+                            children: [
+                              Expanded(child: _buildPlayArea(
+                                title: 'Pick an item',
+                                subtitle: 'Drag the right one',
+                                children: _buildDraggableItems(compact: true),
+                                accent: LearningLabTheme.sky,
+                              )),
+                              SizedBox(width: compact ? 12 : 20),
+                              Expanded(child: _buildPlayArea(
+                                title: 'Match it here',
+                                subtitle: 'Find the matching space',
+                                children: _buildTargets(compact: true),
+                                accent: LearningLabTheme.mint,
+                              )),
+                            ],
                           )
-                        : Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: color.key.runtimeType == Color
-                                  ? color.key
-                                  : AppColors.backgroundColor,
-                              borderRadius: BorderRadius.circular(
-                                12,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                color.key.runtimeType == Color
-                                    ? 'Drag'
-                                    : '${color.key}',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: FontFamily.nunito,
+                        : SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            child: Column(
+                              children: [
+                                _buildPlayArea(
+                                  title: 'Pick an item',
+                                  subtitle: 'Drag the right one',
+                                  children: _buildDraggableItems(compact: false),
+                                  accent: LearningLabTheme.sky,
                                 ),
-                              ),
-                            ),
-                          ),
-                    feedback: Material(
-                      color: Colors.transparent,
-                      child: color.key.toString().endsWith('.svg')
-                          ? SvgPicture.asset(
-                              color.key,
-                              width: 100,
-                              height: 100,
-                              colorFilter: ColorFilter.mode(
-                                AppColors.backgroundColor
-                                    .withAlpha(30),
-                                BlendMode.srcIn,
-                              ),
-                            )
-                          : Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(
-                                  12,
+                                const SizedBox(height: 14),
+                                _buildPlayArea(
+                                  title: 'Match it here',
+                                  subtitle: 'Find the matching space',
+                                  children: _buildTargets(compact: false),
+                                  accent: LearningLabTheme.mint,
                                 ),
-                                color: color.key.runtimeType == Color
-                                    ? color.key
-                                    : AppColors.backgroundColor.withAlpha(30),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  color.key.runtimeType == Color
-                                      ? 'Drag'
-                                      : '${color.key}',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontFamily: FontFamily.nunito,
-                                  ),
-                                ),
-                              ),
-                            ),
-                    ),
-                    childWhenDragging: color.key.toString().endsWith('.svg')
-                        ? SvgPicture.asset(
-                            color.key,
-                            width: 100,
-                            height: 100,
-                            colorFilter: ColorFilter.mode(
-                              AppColors.backgroundColor
-                                  .withAlpha(30),
-                              BlendMode.srcIn,
-                            ),
-                          )
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              12,
-                            ),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: 40,
-                                sigmaY: 40,
-                              ),
-                              child: Container(
-                                width: 100,
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(
-                                    12,
-                                  ),
-                                  color: color.key.runtimeType == Color
-                                      ? color.key
-                                      : AppColors.backgroundColor.withAlpha(30),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    color.key.runtimeType == Color
-                                        ? 'Drag'
-                                        : '${color.key}',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontFamily: FontFamily.nunito,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              ],
                             ),
                           ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-          SizedBox(height: 10),
-
-          // Multiple drop targets
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
-            children: _correctTargets.entries.map((color) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: AnimatedScale(
-                  scale: _scale,
-                  duration: AppConstants.shortAnimationDuration,
-                  child: DragTarget(
-                    onAcceptWithDetails: (receivedColor) {
-                      final settings = ref.read(localStorageNotifier);
-                      if (settings.isSfxEnabled) {
-                        ref.read(tapPlayerControllerProvider.notifier).play();
-                      }
-                      onDrop(color.key, receivedColor.data);
-                    },
-                    builder: (context, candidateData, rejectedData) {
-                      return color.key.toString().endsWith('.svg') &&
-                              (itemDropped[color.key] ?? false)
-                          ? SvgPicture.asset(
-                              color.key,
-                              width: 100,
-                              height: 100,
-                            )
-                          : ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                12,
-                              ),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(
-                                  sigmaX: 40,
-                                  sigmaY: 40,
-                                ),
-                                child: Container(
-                                  width: 100,
-                                  height: 100,
-                                  decoration: BoxDecoration(
-                                    color: (itemDropped[color.key] ?? false)
-                                        ? ((itemCorrectlyPlaced[color.key] ??
-                                                false)
-                                            ? color.key.runtimeType == Color
-                                                ? color.key
-                                                : AppColors.backgroundColor
-                                            : AppColors.backgroundColor
-                                                .withAlpha(30))
-                                        : AppColors.backgroundColor
-                                            .withAlpha(30),
-                                    borderRadius: BorderRadius.circular(
-                                      12,
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '${color.value}',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white,
-                                        fontFamily: FontFamily.nunito,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                    },
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Title row
-  Widget get _getTitleRowWidget {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Back icon
-        _getBackIconWidget,
-
-        // Title,
-        _getTitleWidget,
-
-        // Settings icon
-        _getSettingsIconWidget,
-      ],
-    );
-  }
-
-  /// This represents the "Back" icon.
-  Widget get _getBackIconWidget {
-    return AnimatedScale(
-      scale: _scale,
-      duration: AppConstants.shortAnimationDuration,
-      child: Button(
-        onTap: () {
-          context.showSettingsDialog(
-            isGameScreen: true,
-          );
-        },
-        child: Icon(
-          Icons.pause,
-          color: AppColors.iconColor,
-          size: 20,
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
-  /// This represents the "Settings" icon.
-  Widget get _getSettingsIconWidget {
-    return SizedBox(
-      height: 20,
-      width: 20,
+  Widget _buildHeader(bool compact) {
+    return Row(
+      children: [
+        Button(
+          size: const Size(46, 46),
+          onTap: () => ref
+              .read(screenNotifier.notifier)
+              .navigate(AppScreens.categories, null),
+          child: const Icon(Icons.arrow_back_rounded,
+              color: Colors.white, size: 23),
+        ),
+        const Spacer(),
+        Column(
+          children: [
+            Text(
+              _category.title,
+              style: LearningLabTheme.textTheme.headlineMedium.copyWith(
+                fontSize: compact ? 24 : 30,
+              ),
+            ),
+            if (!compact)
+              Text(
+                'Let’s learn and play!',
+                style: LearningLabTheme.textTheme.bodyLarge.copyWith(
+                  color: LearningLabTheme.mutedInk,
+                  fontSize: 14,
+                ),
+              ),
+          ],
+        ),
+        const Spacer(),
+        Button(
+          size: const Size(46, 46),
+          onTap: () => context.showSettingsDialog(isGameScreen: true),
+          child: const Icon(Icons.pause_rounded,
+              color: Colors.white, size: 23),
+        ),
+      ],
     );
   }
 
-  /// This represents the title widget - app name.
-  Widget get _getTitleWidget {
-    return AnimatedScale(
-      scale: _scale,
-      duration: AppConstants.shortAnimationDuration,
-      child: Stack(
+  Widget _buildPlayArea({
+    required String title,
+    required String subtitle,
+    required List<Widget> children,
+    required Color accent,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.78),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: LearningLabTheme.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            '${_category.title}',
-            style: TextStyle(
-              fontSize: 30,
-              foreground: Paint()
-                ..style = PaintingStyle.stroke
-                ..strokeWidth = 10
-                ..color = AppColors.buttonShadow,
-              shadows: [
-                Shadow(
-                  color: AppColors.textShadowColor,
-                  blurRadius: 50,
-                )
-              ],
-              fontWeight: FontWeight.w900,
-              fontFamily: FontFamily.nunito,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                      style: LearningLabTheme.textTheme.titleLarge.copyWith(
+                        fontSize: 18,
+                      )),
+                    Text(subtitle,
+                      style: LearningLabTheme.textTheme.bodyLarge.copyWith(
+                        color: LearningLabTheme.mutedInk,
+                        fontSize: 12,
+                      )),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Text(
-            '${_category.title}',
-            style: TextStyle(
-              fontSize: 30,
-              color: AppColors.textColor,
-              fontWeight: FontWeight.w900,
-              fontFamily: FontFamily.nunito,
-            ),
-          )
+          const SizedBox(height: 12),
+          Wrap(
+            alignment: WrapAlignment.center,
+            runAlignment: WrapAlignment.center,
+            spacing: 10,
+            runSpacing: 10,
+            children: children,
+          ),
         ],
       ),
     );
   }
 
-  void _animate() {
-    _timer = Timer(
-      AppConstants.shortAnimationDuration,
-      () {
-        ref.read(scaleProvider.notifier).state = 1.0;
-      },
+  List<Widget> _buildDraggableItems({required bool compact}) {
+    final tileSize = compact ? 72.0 : 92.0;
+    return _draggableItems.entries.map((entry) {
+      final item = entry.key;
+      return AnimatedScale(
+        scale: _scale,
+        duration: AppConstants.shortAnimationDuration,
+        child: Draggable<dynamic>(
+          data: item,
+          dragAnchorStrategy: pointerDragAnchorStrategy,
+          feedback: Material(
+            color: Colors.transparent,
+            child: _buildItemVisual(item, tileSize, isFeedback: true),
+          ),
+          childWhenDragging: Opacity(
+            opacity: 0.25,
+            child: _buildItemVisual(item, tileSize),
+          ),
+          child: _buildItemVisual(item, tileSize),
+        ),
+      );
+    }).toList();
+  }
+
+  List<Widget> _buildTargets({required bool compact}) {
+    final tileSize = compact ? 72.0 : 92.0;
+    return _correctTargets.entries.map((entry) {
+      final target = entry.key;
+      final dropped = itemDropped[target] ?? false;
+      final correct = itemCorrectlyPlaced[target] ?? false;
+
+      return AnimatedScale(
+        scale: _scale,
+        duration: AppConstants.shortAnimationDuration,
+        child: DragTarget<dynamic>(
+          onWillAcceptWithDetails: (_) => !correct,
+          onAcceptWithDetails: (details) => onDrop(target, details.data),
+          builder: (context, candidateData, rejectedData) {
+            final hovering = candidateData.isNotEmpty;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              width: tileSize,
+              height: tileSize,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: correct
+                    ? const Color(0xFFE1F5E9)
+                    : dropped
+                        ? const Color(0xFFFFE5DE)
+                        : hovering
+                            ? const Color(0xFFE3F5F2)
+                            : const Color(0xFFF7F5F0),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: correct
+                      ? LearningLabTheme.teal
+                      : hovering
+                          ? LearningLabTheme.teal
+                          : const Color(0xFFE8E2D8),
+                  width: hovering || correct ? 2.5 : 1.5,
+                ),
+              ),
+              child: correct
+                  ? _buildItemContents(target, tileSize - 16)
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '${entry.value}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: FontFamily.nunito,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: LearningLabTheme.ink,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Icon(
+                          dropped ? Icons.refresh_rounded : Icons.add_rounded,
+                          color: dropped
+                              ? LearningLabTheme.coral
+                              : LearningLabTheme.mutedInk,
+                          size: 19,
+                        ),
+                      ],
+                    ),
+            );
+          },
+        ),
+      );
+    }).toList();
+  }
+
+  Widget _buildItemVisual(
+    dynamic item,
+    double size, {
+    bool isFeedback = false,
+  }) {
+    return Container(
+      width: size,
+      height: size,
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: LearningLabTheme.cardBorder),
+        boxShadow: isFeedback
+            ? const []
+            : const [
+                BoxShadow(
+                  color: Color(0x14263451),
+                  blurRadius: 8,
+                  offset: Offset(0, 3),
+                ),
+              ],
+      ),
+      child: Center(child: _buildItemContents(item, size - 18)),
     );
   }
 
-  // A target is complete only when the matching item is dropped onto it.
+  Widget _buildItemContents(dynamic item, double size) {
+    if (item is Color) {
+      return Container(
+        width: size * 0.72,
+        height: size * 0.72,
+        decoration: BoxDecoration(
+          color: item,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black.withOpacity(0.08)),
+        ),
+      );
+    }
+    if (item is String && item.endsWith('.svg')) {
+      return SvgPicture.asset(item, width: size, height: size);
+    }
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        '$item',
+        style: TextStyle(
+          fontFamily: FontFamily.nunito,
+          fontSize: size * 0.72,
+          fontWeight: FontWeight.w900,
+          color: LearningLabTheme.ink,
+        ),
+      ),
+    );
+  }
+
   void onDrop(dynamic targetKey, dynamic item) {
+    if (itemCorrectlyPlaced[targetKey] == true) return;
+
     setState(() {
       itemDropped[targetKey] = true;
       itemCorrectlyPlaced[targetKey] = item == targetKey;
@@ -401,6 +392,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
         onReplay: () {
           ref.read(scaleProvider.notifier).state = 0;
           _timer = Timer(AppConstants.shortAnimationDuration, () {
+            if (!mounted) return;
             _initialise();
             ref.read(scaleProvider.notifier).state = 1;
           });
@@ -409,10 +401,17 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
     }
   }
 
+  void _animate() {
+    _timer?.cancel();
+    _timer = Timer(AppConstants.shortAnimationDuration, () {
+      if (mounted) ref.read(scaleProvider.notifier).state = 1.0;
+    });
+  }
+
   void _loadItems() {
     final alphabets = <String, String>{};
     for (var i = 65; i < 91; i++) {
-      String char = String.fromCharCode(i);
+      final char = String.fromCharCode(i);
       alphabets[char] = char;
     }
 
@@ -429,41 +428,32 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
     };
 
     final maxCount = min(6, items.length);
-    final limit = min(
-      maxCount,
-      Random().nextInt(min(5, items.length - 1)) + 2,
-    );
-    final shuffledSelection = items.entries.toList()..shuffle();
-    final limitedItems = Map.fromEntries(shuffledSelection.take(limit));
+    final minCount = min(2, maxCount);
+    final limit = minCount == maxCount
+        ? maxCount
+        : Random().nextInt(maxCount - minCount + 1) + minCount;
+    final selection = items.entries.toList()..shuffle();
+    final selected = Map<dynamic, dynamic>.fromEntries(selection.take(limit));
 
-    // Shuffle draggable and target items.
-    final shuffledDraggableItems = AppHelpers.instance.shuffleMap(limitedItems);
-    final shuffledTargetItems = AppHelpers.instance.shuffleMap(limitedItems);
-
-    // Add items to list.
     _draggableItems
       ..clear()
-      ..addAll(shuffledDraggableItems);
+      ..addAll(AppHelpers.instance.shuffleMap(selected));
     _correctTargets
       ..clear()
-      ..addAll(shuffledTargetItems);
-    setState(() {});
+      ..addAll(AppHelpers.instance.shuffleMap(selected));
   }
 
-  /// This will be called to initialise/re-initialise the game.
   void _initialise() {
-    // To load drag items based on selected category.
     _loadItems();
-
-    // Show scale animation.
-    _animate();
-
-    // Reset target state for every new round.
-    itemDropped.clear();
-    itemCorrectlyPlaced.clear();
-    for (var color in _correctTargets.keys) {
-      itemDropped[color] = false;
-      itemCorrectlyPlaced[color] = false;
+    itemDropped
+      ..clear();
+    itemCorrectlyPlaced
+      ..clear();
+    for (final key in _correctTargets.keys) {
+      itemDropped[key] = false;
+      itemCorrectlyPlaced[key] = false;
     }
+    if (mounted) setState(() {});
+    _animate();
   }
 }
