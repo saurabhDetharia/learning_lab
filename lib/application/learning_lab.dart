@@ -26,8 +26,8 @@ class _LearningLabState extends ConsumerState<LearningLab> {
   void initState() {
     super.initState();
 
-    // Sets landscape mode
-    AppHelpers.instance.setLandscapeMode();
+    // Sets portrait mode
+    AppHelpers.instance.setPortraitMode();
 
     // Sets status bar
     AppHelpers.instance.setTransparentStatusBar();
