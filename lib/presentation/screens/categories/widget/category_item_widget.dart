@@ -52,7 +52,7 @@ class CategoryItemWidget extends ConsumerWidget {
               color: _cardColor,
               borderRadius: BorderRadius.circular(LearningLabTheme.cardRadius),
               border: Border.all(
-                color: _accentColor.withOpacity(0.2),
+                color: _accentColor.withValues(alpha: 0.2),
                 width: 1.5,
               ),
               boxShadow: const [
