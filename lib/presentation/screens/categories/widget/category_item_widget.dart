@@ -1,107 +1,95 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:learning_lab/application/provider/learning_lab_app_provider.dart';
-import 'package:learning_lab/presentation/screens/categories/provider/categories_screen_provider.dart';
-import 'package:learning_lab/presentation/widgets/shadow_widget.dart';
-import 'package:learning_lab/utils/enums/app_enums.dart';
-import 'package:learning_lab/values/constants.dart';
 
+import '../../../../application/provider/learning_lab_app_provider.dart';
 import '../../../../gen/assets.gen.dart';
-import '../../../../gen/fonts.gen.dart';
-import '../../../../values/app_colors.dart';
+import '../../../../utils/enums/app_enums.dart';
+import '../../../../values/learning_lab_theme.dart';
 import '../../../widgets/button.dart';
 
 class CategoryItemWidget extends ConsumerWidget {
   const CategoryItemWidget({
     required this.category,
+    this.compact = false,
     super.key,
   });
 
   final Categories category;
+  final bool compact;
+
+  Color get _cardColor => switch (category) {
+        Categories.alphabets => const Color(0xFFFFE5DE),
+        Categories.numbers => const Color(0xFFE0F2FC),
+        Categories.shape => const Color(0xFFEAE4FC),
+        Categories.colors => const Color(0xFFDDF3E9),
+      };
+
+  Color get _accentColor => switch (category) {
+        Categories.alphabets => LearningLabTheme.coral,
+        Categories.numbers => const Color(0xFF5AAED5),
+        Categories.shape => const Color(0xFF9A82D6),
+        Categories.colors => LearningLabTheme.teal,
+      };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch the current scale value from the provider
-    final _scale = ref.watch(scaleProvider);
+    final imagePath = Assets.images.values.firstWhere(
+      (image) => image.path.split('/').last == '${category.name}.png',
+    ).path;
 
-    return AnimatedScale(
-      duration: AppConstants.shortAnimationDuration,
-      scale: _scale,
-      child: Column(
-        children: [
-          Button(
-            size: Size.square(180),
-            isElevated: false,
-            onTap: () {
-              ref.read(scaleProvider.notifier).state = 0;
-              Timer(
-                AppConstants.shortAnimationDuration,
-                () {
-                  ref.read(screenNotifier.notifier).navigate(
-                        AppScreens.dragDropGame,
-                        category,
-                      );
-                },
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: ShadowWidget(
-                color: AppColors.buttonShadow,
-                sigma: 4,
-                offset: const Offset(5, 5),
+    return Button(
+      size: Size(double.infinity, compact ? 142 : 176),
+      isElevated: false,
+      onTap: () => ref
+          .read(screenNotifier.notifier)
+          .navigate(AppScreens.dragDropGame, category),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: _cardColor,
+          borderRadius: BorderRadius.circular(LearningLabTheme.cardRadius),
+          border: Border.all(
+            color: _accentColor.withOpacity(0.18),
+            width: 1.5,
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x10263451),
+              blurRadius: 12,
+              offset: Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 10 : 16,
+            vertical: compact ? 8 : 12,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
                 child: Image.asset(
-                  Assets.images.values.firstWhere((images) {
-                    return images.path.split('/').last ==
-                        '${category.name}.png';
-                  }).path,
+                  imagePath,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.medium,
                 ),
               ),
-            ),
+              const SizedBox(height: 5),
+              Text(
+                category.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  fontSize: compact ? 18 : 21,
+                  fontWeight: FontWeight.w900,
+                  color: LearningLabTheme.ink,
+                ),
+              ),
+            ],
           ),
-          _getTitleWidget(_scale),
-        ],
-      ),
-    );
-  }
-
-  /// This represents the title widget - app name.
-  Widget _getTitleWidget(double scale) {
-    return AnimatedScale(
-      scale: scale,
-      duration: AppConstants.shortAnimationDuration,
-      child: Stack(
-        children: [
-          Text(
-            category.title,
-            style: TextStyle(
-              fontSize: 24,
-              foreground: Paint()
-                ..style = PaintingStyle.stroke
-                ..strokeWidth = 5
-                ..color = AppColors.buttonShadow,
-              shadows: [
-                Shadow(
-                  color: AppColors.textShadowColor,
-                  blurRadius: 50,
-                )
-              ],
-              fontWeight: FontWeight.w900,
-              fontFamily: FontFamily.nunito,
-            ),
-          ),
-          Text(
-            category.title,
-            style: TextStyle(
-              fontSize: 24,
-              color: AppColors.textColor,
-              fontWeight: FontWeight.w900,
-              fontFamily: FontFamily.nunito,
-            ),
-          )
-        ],
+        ),
       ),
     );
   }
