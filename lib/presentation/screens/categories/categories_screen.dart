@@ -101,7 +101,7 @@ class CategoriesScreen extends ConsumerWidget {
                           itemCount: Categories.values.length,
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: constraints.maxWidth >= 900
+                            crossAxisCount: constraints.maxWidth >= 760
                                 ? 4
                                 : constraints.maxWidth >= 560
                                     ? 2
@@ -109,7 +109,7 @@ class CategoriesScreen extends ConsumerWidget {
                             crossAxisSpacing: compact ? 12 : 20,
                             mainAxisSpacing: compact ? 8 : 16,
                             childAspectRatio:
-                                constraints.maxWidth >= 900 ? 1.15 : 1.35,
+                                constraints.maxWidth >= 760 ? 1.05 : 1.35,
                           ),
                           itemBuilder: (context, index) => CategoryItemWidget(
                             category: Categories.values[index],
