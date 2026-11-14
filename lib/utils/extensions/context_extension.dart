@@ -17,9 +17,14 @@ extension ContextExtension on BuildContext {
     showDialog(
       context: this,
       builder: (builderCtx) {
-        return AlertDialog(
+        return Dialog(
           backgroundColor: Colors.transparent,
-          content: SettingsWidget(
+          elevation: 0,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 20,
+          ),
+          child: SettingsWidget(
             isGameScreen: isGameScreen,
           ),
         );
