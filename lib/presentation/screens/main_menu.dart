@@ -107,7 +107,17 @@ class _CompactHome extends StatelessWidget {
         style: LearningLabTheme.textTheme.bodyLarge.copyWith(
           color: LearningLabTheme.mutedInk)),
       const SizedBox(height: 18),
-      _PlayButton(onTap: onPlay),
+      Button(
+        size: const Size(220, 64),
+        onTap: onPlay,
+        borderRadius: BorderRadius.circular(24),
+        child: const Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.play_arrow_rounded, color: Colors.white, size: 30),
+          SizedBox(width: 8),
+          Text('Let’s play!', style: TextStyle(fontFamily: 'Nunito',
+            fontSize: 21, fontWeight: FontWeight.w900, color: Colors.white)),
+        ]),
+      ),
       const SizedBox(height: 8),
     ],
   );
