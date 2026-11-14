@@ -77,8 +77,10 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
           SizedBox(height: 10),
 
           // Multiple draggable items
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: _draggableItems.entries.map((color) {
               return Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -207,8 +209,10 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
           SizedBox(height: 10),
 
           // Multiple drop targets
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: _correctTargets.entries.map((color) {
               return Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -221,12 +225,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
                       if (settings.isSfxEnabled) {
                         ref.read(tapPlayerControllerProvider.notifier).play();
                       }
-                      onDrop(
-                        _correctTargets.entries.toList().indexWhere((listItem) {
-                          return listItem.key == color.key;
-                        }),
-                        receivedColor.data,
-                      ); // Call onDrop when item is dropped
+                      onDrop(color.key, receivedColor.data);
                     },
                     builder: (context, candidateData, rejectedData) {
                       return color.key.toString().endsWith('.svg') &&
@@ -381,22 +380,17 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
     );
   }
 
-  // Method to handle drop event
-  void onDrop(int colorIndex, dynamic item) {
-    // Check if the dropped item is on the correct target
-    int index = _correctTargets.keys.toList().indexOf(item);
-    if (index == colorIndex) {
-      itemDropped[item] = true;
-      itemCorrectlyPlaced[item] = true;
-    } else {
-      itemDropped[item] = false;
-      itemCorrectlyPlaced[item] = false;
-    }
-
-    final isAllMatched = !itemCorrectlyPlaced.entries.any((item) {
-      return item.value == false;
+  // A target is complete only when the matching item is dropped onto it.
+  void onDrop(dynamic targetKey, dynamic item) {
+    setState(() {
+      itemDropped[targetKey] = true;
+      itemCorrectlyPlaced[targetKey] = item == targetKey;
     });
-    itemDropped.entries.any((item) => item == false);
+
+    final isAllMatched = _correctTargets.keys.every(
+      (key) => itemCorrectlyPlaced[key] == true,
+    );
+
     if (isAllMatched) {
       final settings = ref.read(localStorageNotifier);
       if (settings.isSfxEnabled) {
@@ -417,7 +411,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
 
   void _loadItems() {
     final alphabets = <String, String>{};
-    for (var i = 65; i < 92; i++) {
+    for (var i = 65; i < 91; i++) {
       String char = String.fromCharCode(i);
       alphabets[char] = char;
     }
@@ -434,16 +428,13 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
       Categories.shape => AppConstants.shapes,
     };
 
-    int limit = Random().nextInt(items.length);
-
-    if (limit < 2) {
-      limit = 2;
-    } else if (limit > 6) {
-      limit = 6;
-    }
-    final limitedItemsItr = items.entries.take(limit);
-
-    final limitedItems = Map.fromEntries(limitedItemsItr);
+    final maxCount = min(6, items.length);
+    final limit = min(
+      maxCount,
+      Random().nextInt(min(5, items.length - 1)) + 2,
+    );
+    final shuffledSelection = items.entries.toList()..shuffle();
+    final limitedItems = Map.fromEntries(shuffledSelection.take(limit));
 
     // Shuffle draggable and target items.
     final shuffledDraggableItems = AppHelpers.instance.shuffleMap(limitedItems);
@@ -467,8 +458,10 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
     // Show scale animation.
     _animate();
 
-    // Initially, no item has been dropped or correctly placed
-    for (var color in _draggableItems.keys) {
+    // Reset target state for every new round.
+    itemDropped.clear();
+    itemCorrectlyPlaced.clear();
+    for (var color in _correctTargets.keys) {
       itemDropped[color] = false;
       itemCorrectlyPlaced[color] = false;
     }
