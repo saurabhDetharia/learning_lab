@@ -36,7 +36,7 @@ class CategoriesScreen extends ConsumerWidget {
                     children: [
                       Button(
                         size: const Size(48, 48),
-                        backgroundColor: Colors.white,
+                        isElevated: false,
                         onTap: () => ref
                             .read(screenNotifier.notifier)
                             .navigate(AppScreens.mainMenu, null),
@@ -59,7 +59,7 @@ class CategoriesScreen extends ConsumerWidget {
                       const Spacer(),
                       Button(
                         size: const Size(48, 48),
-                        backgroundColor: Colors.white,
+                        isElevated: false,
                         onTap: () => context.showSettingsDialog(),
                         child: const Icon(
                           CupertinoIcons.gear_alt_fill,
@@ -69,7 +69,7 @@ class CategoriesScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: compact ? 12 : 22),
+                  SizedBox(height: compact ? 8 : 14),
                   Text(
                     'What shall we learn today?',
                     textAlign: TextAlign.center,
@@ -89,7 +89,7 @@ class CategoriesScreen extends ConsumerWidget {
                       fontSize: compact ? 15 : 17,
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 8),
                   Expanded(
                     child: Center(
                       child: ConstrainedBox(
@@ -109,7 +109,7 @@ class CategoriesScreen extends ConsumerWidget {
                             crossAxisSpacing: compact ? 12 : 20,
                             mainAxisSpacing: compact ? 8 : 16,
                             childAspectRatio:
-                                constraints.maxWidth >= 760 ? 1.05 : 1.35,
+                                constraints.maxWidth >= 760 ? 1.65 : 1.35,
                           ),
                           itemBuilder: (context, index) => CategoryItemWidget(
                             category: Categories.values[index],
