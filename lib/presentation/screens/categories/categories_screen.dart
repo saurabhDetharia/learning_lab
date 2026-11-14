@@ -19,7 +19,9 @@ class CategoriesScreen extends ConsumerWidget {
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final compact = constraints.maxHeight < 430 ||
+            final isLandscape = constraints.maxWidth > constraints.maxHeight;
+            final compact = isLandscape ||
+                constraints.maxHeight < 500 ||
                 constraints.maxWidth < 680;
             final horizontalPadding = constraints.maxWidth < 600 ? 16.0 : 32.0;
 
@@ -36,13 +38,13 @@ class CategoriesScreen extends ConsumerWidget {
                     children: [
                       Button(
                         size: const Size(48, 48),
-                        isElevated: false,
+                        isElevated: true,
                         onTap: () => ref
                             .read(screenNotifier.notifier)
                             .navigate(AppScreens.mainMenu, null),
                         child: const Icon(
                           Icons.arrow_back_rounded,
-                          color: LearningLabTheme.ink,
+                          color: Colors.white,
                           size: 24,
                         ),
                       ),
@@ -59,11 +61,11 @@ class CategoriesScreen extends ConsumerWidget {
                       const Spacer(),
                       Button(
                         size: const Size(48, 48),
-                        isElevated: false,
+                        isElevated: true,
                         onTap: () => context.showSettingsDialog(),
                         child: const Icon(
                           CupertinoIcons.gear_alt_fill,
-                          color: LearningLabTheme.ink,
+                          color: Colors.white,
                           size: 22,
                         ),
                       ),
@@ -96,20 +98,19 @@ class CategoriesScreen extends ConsumerWidget {
                         constraints: const BoxConstraints(maxWidth: 1040),
                         child: GridView.builder(
                           shrinkWrap: true,
-                          physics: const BouncingScrollPhysics(),
+                          physics: const NeverScrollableScrollPhysics(),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           itemCount: Categories.values.length,
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: constraints.maxWidth >= 760
+                            crossAxisCount: isLandscape
                                 ? 4
                                 : constraints.maxWidth >= 560
                                     ? 2
-                                    : 2,
+                                    : 1,
                             crossAxisSpacing: compact ? 12 : 20,
                             mainAxisSpacing: compact ? 8 : 16,
-                            childAspectRatio:
-                                constraints.maxWidth >= 760 ? 1.65 : 1.35,
+                            childAspectRatio: isLandscape ? 1.3 : 1.2,
                           ),
                           itemBuilder: (context, index) => CategoryItemWidget(
                             category: Categories.values[index],
