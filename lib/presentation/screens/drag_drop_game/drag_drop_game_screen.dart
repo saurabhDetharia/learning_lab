@@ -299,7 +299,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
                 ),
               ),
               child: correct
-                  ? _buildItemContents(target, tileSize - 16)
+                  ? _buildItemContents(target, min(tileWidth, tileHeight) - 16)
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
