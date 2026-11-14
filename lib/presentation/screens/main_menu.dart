@@ -1,186 +1,180 @@
-import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:learning_lab/presentation/widgets/button.dart';
 import 'package:learning_lab/utils/extensions/context_extension.dart';
-import 'package:learning_lab/values/app_colors.dart';
-import 'package:learning_lab/values/constants.dart';
 
 import '../../application/provider/learning_lab_app_provider.dart';
-import '../../gen/fonts.gen.dart';
 import '../../utils/enums/app_enums.dart';
+import '../../values/learning_lab_theme.dart';
 
-class MainMenuScreen extends ConsumerStatefulWidget {
+class MainMenuScreen extends ConsumerWidget {
   const MainMenuScreen({super.key});
 
   @override
-  ConsumerState<MainMenuScreen> createState() => _MainMenuScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final compact = constraints.maxHeight < 420 || constraints.maxWidth < 720;
+      return ColoredBox(
+        color: LearningLabTheme.cream,
+        child: Stack(children: [
+          const Positioned(top: -55, right: -35,
+            child: _Blob(size: 190, color: Color(0xFFFFE8B8))),
+          const Positioned(bottom: -85, left: -50,
+            child: _Blob(size: 220, color: Color(0xFFDDF3ED))),
+          SafeArea(child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: constraints.maxWidth < 700 ? 20 : 48,
+              vertical: compact ? 10 : 24,
+            ),
+            child: Column(children: [
+              Align(alignment: Alignment.topRight, child: Material(
+                color: Colors.white, shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () => context.showSettingsDialog(),
+                  child: const SizedBox(width: 56, height: 56,
+                    child: Icon(CupertinoIcons.gear_alt_fill,
+                      color: LearningLabTheme.ink, size: 26)),
+                ),
+              )),
+              Expanded(child: compact
+                ? _CompactHome(onPlay: () => _start(ref))
+                : _WideHome(onPlay: () => _start(ref))),
+            ]),
+          )),
+        ]),
+      );
+    });
+  }
+
+  void _start(WidgetRef ref) {
+    ref.read(screenNotifier.notifier).navigate(AppScreens.categories, null);
+  }
 }
 
-class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
-  Timer? _timer;
-
-  double _scale = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer(
-      AppConstants.shortAnimationDuration,
-      () {
-        setState(() {
-          _scale = 1;
-        });
-      },
-    );
-  }
+class _WideHome extends StatelessWidget {
+  const _WideHome({required this.onPlay});
+  final VoidCallback onPlay;
 
   @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
+  Widget build(BuildContext context) => Row(children: [
+    Expanded(flex: 11, child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('PLAY • LEARN • GROW', style: TextStyle(
+          fontFamily: 'Nunito', fontSize: 13, letterSpacing: 2,
+          fontWeight: FontWeight.w900, color: LearningLabTheme.tealDark)),
+        const SizedBox(height: 12),
+        Text('Hello, little learner!', style: LearningLabTheme.textTheme.headlineLarge),
+        const SizedBox(height: 10),
+        Text('Let’s explore something wonderful today.',
+          style: LearningLabTheme.textTheme.bodyLarge.copyWith(
+            color: LearningLabTheme.mutedInk)),
+        const SizedBox(height: 28),
+        _PlayButton(onTap: onPlay),
+      ],
+    )),
+    const Expanded(flex: 9, child: Center(child: _Mascot())),
+  ]);
+}
+
+class _CompactHome extends StatelessWidget {
+  const _CompactHome({required this.onPlay});
+  final VoidCallback onPlay;
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // Title
-          _getTitleWidget,
+  Widget build(BuildContext context) => Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      const Expanded(child: Center(child: _Mascot())),
+      Text('Hello, little learner!', textAlign: TextAlign.center,
+        style: LearningLabTheme.textTheme.headlineMedium),
+      const SizedBox(height: 8),
+      Text('Let’s explore something wonderful today.',
+        textAlign: TextAlign.center,
+        style: LearningLabTheme.textTheme.bodyLarge.copyWith(
+          color: LearningLabTheme.mutedInk)),
+      const SizedBox(height: 18),
+      _PlayButton(onTap: onPlay),
+      const SizedBox(height: 8),
+    ],
+  );
+}
 
-          // Icons
-          _getButtonsRowWidget,
-        ],
+class _PlayButton extends StatelessWidget {
+  const _PlayButton({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: LearningLabTheme.teal,
+    borderRadius: BorderRadius.circular(24),
+    child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(24),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 68, minWidth: 230),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(24),
+          boxShadow: const [BoxShadow(color: Color(0x33218F83),
+            blurRadius: 0, offset: Offset(0, 6))]),
+        child: const Row(mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(Icons.play_arrow_rounded, color: Colors.white, size: 32),
+            SizedBox(width: 8),
+            Text('Let’s play!', style: TextStyle(fontFamily: 'Nunito',
+              fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
+          ]),
       ),
-    );
-  }
+    ),
+  );
+}
 
-  /// This represents the title widget - app name.
-  Widget get _getTitleWidget {
-    return AnimatedScale(
-      scale: _scale,
-      duration: AppConstants.shortAnimationDuration,
-      child: Stack(
-        children: [
-          Text(
-            'LearningLab',
-            style: TextStyle(
-              fontSize: 64,
-              foreground: Paint()
-                ..style = PaintingStyle.stroke
-                ..strokeWidth = 15
-                ..color = AppColors.buttonShadow,
-              shadows: [
-                Shadow(
-                  color: AppColors.textShadowColor,
-                  blurRadius: 50,
-                )
-              ],
-              fontWeight: FontWeight.w900,
-              fontFamily: FontFamily.nunito,
-            ),
-          ),
-          Text(
-            'LearningLab',
-            style: TextStyle(
-              fontSize: 64,
-              color: AppColors.textColor,
-              fontWeight: FontWeight.w900,
-              fontFamily: FontFamily.nunito,
-            ),
-          )
-        ],
-      ),
-    );
-  }
+class _Mascot extends StatelessWidget {
+  const _Mascot();
 
-  /// This represents the "Settings" icon.
-  Widget get _getSettingsIconWidget {
-    return Button(
-      onTap: () {
-        context.showSettingsDialog();
-      },
-      size: Size.square(60),
-      child: Icon(
-        CupertinoIcons.gear_alt_fill,
-        color: AppColors.iconColor,
-        size: 40,
-      ),
-    );
-  }
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) {
+    final size = c.maxHeight.clamp(145.0, 300.0);
+    return SizedBox(width: size * 1.2, height: size, child: Stack(
+      alignment: Alignment.center, children: [
+        Container(width: size * .9, height: size * .9,
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFE8B8), shape: BoxShape.circle)),
+        Positioned(top: size * .03, left: size * .05,
+          child: const _Bubble(text: 'A', color: LearningLabTheme.coral)),
+        Positioned(top: size * .18, right: 0,
+          child: const _Bubble(text: '★', color: LearningLabTheme.teal)),
+        Positioned(bottom: size * .05, left: size * .08,
+          child: const _Bubble(text: '1', color: LearningLabTheme.lavender)),
+        Text('🦊', style: TextStyle(fontSize: size * .55)),
+      ],
+    ));
+  });
+}
 
-  /// This represents the "Play" icon.
-  Widget get _getPlayIconWidget {
-    return Button(
-      onTap: () {
-        setState(() {
-          _scale = 0;
-        });
-        _timer = Timer(
-          AppConstants.shortAnimationDuration,
-          () {
-            var _screenNotifier = ref.read(screenNotifier.notifier);
-            _screenNotifier.navigate(AppScreens.categories, null);
-          },
-        );
-      },
-      size: Size.square(60),
-      child: Icon(
-        CupertinoIcons.play_arrow_solid,
-        color: AppColors.iconColor,
-        size: 40,
-      ),
-    );
-  }
+class _Bubble extends StatelessWidget {
+  const _Bubble({required this.text, required this.color});
+  final String text;
+  final Color color;
 
-  /// This represents the "Credits" icon.
-  Widget get _getCreditsIconWidget {
-    return Button(
-      onTap: () {
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 52, height: 52, alignment: Alignment.center,
+    decoration: BoxDecoration(color: color,
+      borderRadius: BorderRadius.circular(18),
+      boxShadow: const [BoxShadow(color: Color(0x22000000),
+        blurRadius: 8, offset: Offset(0, 4))]),
+    child: Text(text, style: const TextStyle(fontFamily: 'Nunito',
+      fontSize: 27, fontWeight: FontWeight.w900, color: Colors.white)),
+  );
+}
 
-      },
-      size: Size.square(60),
-      child: Icon(
-        Icons.format_list_bulleted_rounded,
-        color: AppColors.iconColor,
-        size: 40,
-      ),
-    );
-  }
+class _Blob extends StatelessWidget {
+  const _Blob({required this.size, required this.color});
+  final double size;
+  final Color color;
 
-  /// This represents the bottom row containing icons.
-  Widget get _getButtonsRowWidget {
-    return AnimatedScale(
-      duration: AppConstants.shortAnimationDuration,
-      scale: _scale,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Settings Icon
-          _getSettingsIconWidget,
-
-          // Space - 12px
-          SizedBox(
-            width: 48,
-          ),
-
-          // Play Icon
-          _getPlayIconWidget,
-
-          // Space - 12px
-          SizedBox(
-            width: 48,
-          ),
-
-          // Credits Icon
-          _getCreditsIconWidget,
-        ],
-      ),
-    );
-  }
+  @override
+  Widget build(BuildContext context) => Container(width: size, height: size,
+    decoration: BoxDecoration(color: color, shape: BoxShape.circle));
 }
