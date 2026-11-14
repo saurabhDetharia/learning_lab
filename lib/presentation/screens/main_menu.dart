@@ -72,7 +72,7 @@ class _WideHome extends StatelessWidget {
         Text('Hello, little learner!', style: LearningLabTheme.textTheme.headlineLarge),
         const SizedBox(height: 10),
         Text('Let’s explore something wonderful today.',
-          style: LearningLabTheme.textTheme.bodyLarge.copyWith(
+          style: LearningLabTheme.textTheme.bodyLarge!.copyWith(
             color: LearningLabTheme.mutedInk)),
         const SizedBox(height: 28),
         Button(
@@ -106,7 +106,7 @@ class _CompactHome extends StatelessWidget {
       const SizedBox(height: 8),
       Text('Let’s explore something wonderful today.',
         textAlign: TextAlign.center,
-        style: LearningLabTheme.textTheme.bodyLarge.copyWith(
+        style: LearningLabTheme.textTheme.bodyLarge!.copyWith(
           color: LearningLabTheme.mutedInk)),
       const SizedBox(height: 18),
       Button(
