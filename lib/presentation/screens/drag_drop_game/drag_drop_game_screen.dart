@@ -10,7 +10,6 @@ import '../../../application/provider/learning_lab_app_provider.dart';
 import '../../../gen/fonts.gen.dart';
 import '../../../utils/enums/app_enums.dart';
 import '../../../utils/helpers/app_helpers.dart';
-import '../../../values/app_colors.dart';
 import '../../../values/constants.dart';
 import '../../../values/learning_lab_theme.dart';
 import '../../widgets/button.dart';
@@ -24,10 +23,10 @@ class DragDropGameScreen extends ConsumerStatefulWidget {
 }
 
 class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
-  final Map<dynamic, dynamic> _draggableItems = {};
-  final Map<dynamic, dynamic> _correctTargets = {};
-  final Map<dynamic, bool> itemDropped = {};
-  final Map<dynamic, bool> itemCorrectlyPlaced = {};
+  final Map<Object, Object> _draggableItems = {};
+  final Map<Object, Object> _correctTargets = {};
+  final Map<Object, bool> itemDropped = {};
+  final Map<Object, bool> itemCorrectlyPlaced = {};
 
   late Categories _category;
   late double _scale;
@@ -226,7 +225,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
       return AnimatedScale(
         scale: _scale,
         duration: AppConstants.shortAnimationDuration,
-        child: Draggable<dynamic>(
+        child: Draggable<Object>(
           data: item,
           dragAnchorStrategy: pointerDragAnchorStrategy,
           feedback: Material(
@@ -253,7 +252,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
       return AnimatedScale(
         scale: _scale,
         duration: AppConstants.shortAnimationDuration,
-        child: DragTarget<dynamic>(
+        child: DragTarget<Object>(
           onWillAcceptWithDetails: (_) => !correct,
           onAcceptWithDetails: (details) => onDrop(target, details.data),
           builder: (context, candidateData, rejectedData) {
@@ -315,7 +314,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
   }
 
   Widget _buildItemVisual(
-    dynamic item,
+    Object item,
     double size, {
     bool isFeedback = false,
   }) {
@@ -341,7 +340,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
     );
   }
 
-  Widget _buildItemContents(dynamic item, double size) {
+  Widget _buildItemContents(Object item, double size) {
     if (item is Color) {
       return Container(
         width: size * 0.72,
@@ -370,7 +369,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
     );
   }
 
-  void onDrop(dynamic targetKey, dynamic item) {
+  void onDrop(Object targetKey, Object item) {
     if (itemCorrectlyPlaced[targetKey] == true) return;
 
     setState(() {
@@ -433,7 +432,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
         ? maxCount
         : Random().nextInt(maxCount - minCount + 1) + minCount;
     final selection = items.entries.toList()..shuffle();
-    final selected = Map<dynamic, dynamic>.fromEntries(selection.take(limit));
+    final selected = Map<Object, Object>.fromEntries(selection.take(limit));
 
     _draggableItems
       ..clear()
