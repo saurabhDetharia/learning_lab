@@ -135,14 +135,14 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
           children: [
             Text(
               _category.title,
-              style: LearningLabTheme.textTheme.headlineMedium.copyWith(
+              style: LearningLabTheme.textTheme.headlineMedium!.copyWith(
                 fontSize: compact ? 24 : 30,
               ),
             ),
             if (!compact)
               Text(
                 'Let’s learn and play!',
-                style: LearningLabTheme.textTheme.bodyLarge.copyWith(
+                style: LearningLabTheme.textTheme.bodyLarge!.copyWith(
                   color: LearningLabTheme.mutedInk,
                   fontSize: 14,
                 ),
@@ -172,7 +172,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
       height: expand ? double.infinity : null,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.78),
+        color: Colors.white.withValues(alpha: 0.78),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: LearningLabTheme.cardBorder),
       ),
@@ -196,11 +196,11 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title,
-                      style: LearningLabTheme.textTheme.titleLarge.copyWith(
+                      style: LearningLabTheme.textTheme.titleLarge!.copyWith(
                         fontSize: 18,
                       )),
                     Text(subtitle,
-                      style: LearningLabTheme.textTheme.bodyLarge.copyWith(
+                      style: LearningLabTheme.textTheme.bodyLarge!.copyWith(
                         color: LearningLabTheme.mutedInk,
                         fontSize: 12,
                       )),
@@ -371,7 +371,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
         decoration: BoxDecoration(
           color: item,
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.black.withOpacity(0.08)),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
         ),
       );
     }
