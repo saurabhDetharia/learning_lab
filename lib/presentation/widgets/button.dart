@@ -1,167 +1,146 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:learning_lab/values/app_colors.dart';
-import 'package:learning_lab/values/constants.dart';
 
 import '../../application/provider/learning_lab_app_provider.dart';
+import '../../values/learning_lab_theme.dart';
 
+/// A reusable, animated button for the LearningLab interface.
+///
+/// Elevated buttons use the shared preschool theme. Set [isElevated] to false
+/// for icon-only or otherwise unframed actions while keeping the press scale.
 class Button extends ConsumerStatefulWidget {
-  final Size? size;
-  final Function? onTap;
-  final Widget child;
-  final bool isElevated;
-
   const Button({
     required this.onTap,
     required this.child,
     this.size,
     this.isElevated = true,
+    this.backgroundColor,
+    this.borderRadius,
     super.key,
   });
+
+  final Size? size;
+  final VoidCallback? onTap;
+  final Widget child;
+  final bool isElevated;
+  final Color? backgroundColor;
+  final BorderRadius? borderRadius;
 
   @override
   ConsumerState<Button> createState() => _ButtonState();
 }
 
 class _ButtonState extends ConsumerState<Button> {
-  // The default button size to calculate scale.
-  Size get _defaultSize => Size.square(50);
+  bool _isPressed = false;
 
-  // Ease access to provided values.
-  Size get _size => widget.size ?? _defaultSize;
-  Function? get _onTap => widget.onTap;
-  Widget get _child => widget.child;
-  bool get _isElevated => widget.isElevated;
+  Size get _size => widget.size ?? const Size.square(50);
+  BorderRadius get _radius =>
+      widget.borderRadius ?? BorderRadius.circular(LearningLabTheme.controlRadius);
 
-  // Calculate scale based on the default size,
-  // which will be used to scale animated position.
-  double get _scale => (_size.shortestSide / _defaultSize.shortestSide);
+  void _setPressed(bool value) {
+    if (_isPressed != value) {
+      setState(() => _isPressed = value);
+    }
+  }
 
-  // For press event animation.
-  double _top = 3;
-  double _childScale = 1;
-
-  @override
-  void initState() {
-    super.initState();
+  void _handleTap() {
+    final settings = ref.read(localStorageNotifier);
+    if (settings.isSfxEnabled) {
+      ref.read(tapPlayerControllerProvider.notifier).play();
+    }
+    widget.onTap?.call();
   }
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        boxShadow: !_isElevated ? [] : [
-          BoxShadow(
-            color: AppColors.shadowColorLight,
-            offset: Offset.zero,
-            blurRadius: 25,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Container(
-        height: _size.height + (12 * _scale),
-        width: _size.width,
-        alignment: Alignment.center,
+    final enabled = widget.onTap != null;
+    final height = _size.height;
+    final width = _size.width;
+
+    if (!widget.isElevated) {
+      return SizedBox(
+        width: width,
+        height: height,
         child: GestureDetector(
-          onTap: _onTap == null
-              ? null
-              : () async {
-                  setState(() {
-                    // Start animation.
-                    _top = 6 * _scale;
-                    _childScale = 0.9;
-                  });
-                  final settings = ref.watch(localStorageNotifier);
-                  if (settings.isSfxEnabled) {
-                    final _tapMusicPlayer =
-                    ref.watch(tapPlayerControllerProvider.notifier);
-                    _tapMusicPlayer.play();
-                  }
-                  Timer.periodic(AppConstants.shortAnimationDuration,
-                      (timer) async {
-                    if (timer.tick == 1) {
-                      setState(() {
-                        // Start animation.
-                        _top = 3;
-                        _childScale = 1;
-                      });
-                    } else if (timer.tick == 2) {
-                      timer.cancel();
-                      await _onTap!();
-                    }
-                  });
-                },
-          child: !widget.isElevated
-              ? Center(
-                  child: AnimatedScale(
-                    scale: _childScale,
-                    duration: AppConstants.shortAnimationDuration,
-                    child: _child,
-                  ),
-                )
-              : Stack(
-                  children: [
-                    AnimatedPositioned(
-                      top: (6 * _scale),
-                      duration: AppConstants.shortAnimationDuration,
-                      child: Container(
-                        height: _size.height,
-                        width: _size.width,
-                        decoration: BoxDecoration(
-                          color: AppColors.buttonShadow,
-                          borderRadius: BorderRadius.circular(
-                            16,
-                          ),
-                        ),
-                      ),
-                    ),
-                    AnimatedPositioned(
-                      top: _top,
-                      duration: AppConstants.shortAnimationDuration,
-                      child: Container(
-                        height: _size.height,
-                        width: _size.width,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              AppColors.buttonPrimaryTop,
-                              AppColors.buttonPrimaryBottom,
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            16,
-                          ),
-                        ),
-                      ),
-                    ),
-                    AnimatedPositioned(
-                      top: (_top / 2) + (6 * _scale),
-                      duration: AppConstants.shortAnimationDuration,
-                      child: Container(
-                        height: _size.height / 2,
-                        width: _size.width,
-                        decoration: BoxDecoration(
-                          color: AppColors.buttonShadowLight,
-                          borderRadius: BorderRadius.circular(
-                            16,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Center(
-                      child: AnimatedScale(
-                        scale: _childScale,
-                        duration: AppConstants.shortAnimationDuration,
-                        child: _child,
-                      ),
+          behavior: HitTestBehavior.opaque,
+          onTapDown: enabled ? (_) => _setPressed(true) : null,
+          onTapCancel: () => _setPressed(false),
+          onTap: enabled
+              ? () {
+                  _setPressed(false);
+                  _handleTap();
+                }
+              : null,
+          child: AnimatedScale(
+            scale: _isPressed ? 0.94 : 1,
+            duration: const Duration(milliseconds: 110),
+            curve: Curves.easeOut,
+            child: Center(child: widget.child),
+          ),
+        ),
+      );
+    }
+
+    final background = widget.backgroundColor ?? LearningLabTheme.teal;
+    final offset = _isPressed ? 2.0 : 7.0;
+
+    return SizedBox(
+      width: width,
+      height: height + 9,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: enabled ? (_) => _setPressed(true) : null,
+        onTapCancel: () => _setPressed(false),
+        onTap: enabled
+            ? () {
+                _setPressed(false);
+                _handleTap();
+              }
+            : null,
+        child: Stack(
+          children: [
+            Positioned(
+              top: 7,
+              left: 0,
+              right: 0,
+              height: height,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: LearningLabTheme.tealDark,
+                  borderRadius: _radius,
+                ),
+              ),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 110),
+              curve: Curves.easeOut,
+              top: offset - 5,
+              left: 0,
+              right: 0,
+              height: height,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 110),
+                curve: Curves.easeOut,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: background,
+                  borderRadius: _radius,
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x1A263451),
+                      blurRadius: 10,
+                      offset: Offset(0, 3),
                     ),
                   ],
                 ),
+                child: AnimatedScale(
+                  scale: _isPressed ? 0.97 : 1,
+                  duration: const Duration(milliseconds: 110),
+                  child: widget.child,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
