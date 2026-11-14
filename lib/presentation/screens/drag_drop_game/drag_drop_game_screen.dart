@@ -77,6 +77,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
                                 subtitle: 'Drag the right one',
                                 children: _buildDraggableItems(compact: true),
                                 accent: LearningLabTheme.sky,
+                                expand: true,
                               )),
                               SizedBox(width: compact ? 12 : 20),
                               Expanded(child: _buildPlayArea(
@@ -84,6 +85,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
                                 subtitle: 'Find the matching space',
                                 children: _buildTargets(compact: true),
                                 accent: LearningLabTheme.mint,
+                                expand: true,
                               )),
                             ],
                           )
@@ -163,9 +165,11 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
     required String subtitle,
     required List<Widget> children,
     required Color accent,
+    bool expand = false,
   }) {
     return Container(
       width: double.infinity,
+      height: expand ? double.infinity : null,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.78),
@@ -174,7 +178,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
         children: [
           Row(
             children: [
@@ -206,20 +210,33 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Wrap(
-            alignment: WrapAlignment.center,
-            runAlignment: WrapAlignment.center,
-            spacing: 10,
-            runSpacing: 10,
-            children: children,
-          ),
+          if (expand)
+            Expanded(
+              child: Center(
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  runAlignment: WrapAlignment.center,
+                  spacing: 14,
+                  runSpacing: 14,
+                  children: children,
+                ),
+              ),
+            )
+          else
+            Wrap(
+              alignment: WrapAlignment.center,
+              runAlignment: WrapAlignment.center,
+              spacing: 10,
+              runSpacing: 10,
+              children: children,
+            ),
         ],
       ),
     );
   }
 
   List<Widget> _buildDraggableItems({required bool compact}) {
-    final tileSize = compact ? 72.0 : 92.0;
+    final tileSize = compact ? 88.0 : 104.0;
     return _draggableItems.entries.map((entry) {
       final item = entry.key;
       return AnimatedScale(
@@ -243,7 +260,8 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
   }
 
   List<Widget> _buildTargets({required bool compact}) {
-    final tileSize = compact ? 72.0 : 92.0;
+    final tileWidth = compact ? 124.0 : 148.0;
+    final tileHeight = compact ? 112.0 : 132.0;
     return _correctTargets.entries.map((entry) {
       final target = entry.key;
       final dropped = itemDropped[target] ?? false;
@@ -259,8 +277,8 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
             final hovering = candidateData.isNotEmpty;
             return AnimatedContainer(
               duration: const Duration(milliseconds: 160),
-              width: tileSize,
-              height: tileSize,
+              width: tileWidth,
+              height: tileHeight,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: correct
@@ -285,24 +303,29 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          '${entry.value}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontFamily: FontFamily.nunito,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            color: LearningLabTheme.ink,
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              '${entry.value}',
+                              textAlign: TextAlign.center,
+                              softWrap: true,
+                              maxLines: 2,
+                              style: TextStyle(
+                                fontFamily: FontFamily.nunito,
+                                fontSize: compact ? 16 : 19,
+                                height: 1.05,
+                                fontWeight: FontWeight.w900,
+                                color: LearningLabTheme.ink,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 3),
                         Icon(
                           dropped ? Icons.refresh_rounded : Icons.add_rounded,
                           color: dropped
                               ? LearningLabTheme.coral
                               : LearningLabTheme.mutedInk,
-                          size: 19,
+                          size: compact ? 18 : 21,
                         ),
                       ],
                     ),
