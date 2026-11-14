@@ -8,9 +8,8 @@ class AppHelpers {
   /// Below used to set landscape orientation.
   void setLandscapeMode() {
     SystemChrome.setPreferredOrientations([
-      // DeviceOrientation.landscapeLeft,
-      // DeviceOrientation.landscapeRight,
-      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
     ]);
   }
 
