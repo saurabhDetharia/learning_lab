@@ -19,7 +19,7 @@ class CategoriesScreen extends ConsumerWidget {
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final isLandscape = constraints.maxWidth > constraints.maxHeight;
+            final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
             final compact = isLandscape ||
                 constraints.maxHeight < 500 ||
                 constraints.maxWidth < 680;
@@ -71,14 +71,14 @@ class CategoriesScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: compact ? 8 : 14),
+                  SizedBox(height: isLandscape ? compact ? 8 : 14 : 36),
                   Text(
                     'What shall we learn today?',
                     textAlign: TextAlign.center,
                     style: (compact
                             ? LearningLabTheme.textTheme.headlineMedium
                             : LearningLabTheme.textTheme.headlineLarge)
-                        .copyWith(
+                        ?.copyWith(
                       fontSize: compact ? 27 : 36,
                     ),
                   ),
@@ -86,36 +86,34 @@ class CategoriesScreen extends ConsumerWidget {
                   Text(
                     'Pick a fun activity to get started!',
                     textAlign: TextAlign.center,
-                    style: LearningLabTheme.textTheme.bodyLarge.copyWith(
+                    style: LearningLabTheme.textTheme.bodyLarge?.copyWith(
                       color: LearningLabTheme.mutedInk,
                       fontSize: compact ? 15 : 17,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height:  isLandscape ? compact ? 8 : 14 : 36),
                   Expanded(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1040),
-                        child: GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: Categories.values.length,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: isLandscape
-                                ? 4
-                                : constraints.maxWidth >= 560
-                                    ? 2
-                                    : 1,
-                            crossAxisSpacing: compact ? 12 : 20,
-                            mainAxisSpacing: compact ? 8 : 16,
-                            childAspectRatio: isLandscape ? 1.3 : 1.2,
-                          ),
-                          itemBuilder: (context, index) => CategoryItemWidget(
-                            category: Categories.values[index],
-                            compact: compact,
-                          ),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1040),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: Categories.values.length,
+                        gridDelegate:
+                            SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: isLandscape
+                              ? 4
+                              : compact
+                                  ? 2
+                                  : 1,
+                          crossAxisSpacing: compact ? 12 : 20,
+                          mainAxisSpacing: compact ? 8 : 16,
+                          childAspectRatio: isLandscape ? 1.3 : 1.2,
+                        ),
+                        itemBuilder: (context, index) => CategoryItemWidget(
+                          category: Categories.values[index],
+                          compact: compact,
                         ),
                       ),
                     ),
