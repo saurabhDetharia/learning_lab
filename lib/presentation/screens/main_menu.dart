@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learning_lab/utils/extensions/context_extension.dart';
+import 'package:learning_lab/presentation/widgets/button.dart';
 
 import '../../application/provider/learning_lab_app_provider.dart';
 import '../../utils/enums/app_enums.dart';
@@ -72,7 +73,17 @@ class _WideHome extends StatelessWidget {
           style: LearningLabTheme.textTheme.bodyLarge.copyWith(
             color: LearningLabTheme.mutedInk)),
         const SizedBox(height: 28),
-        _PlayButton(onTap: onPlay),
+        Button(
+          size: const Size(230, 68),
+          onTap: onPlay,
+          borderRadius: BorderRadius.circular(24),
+          child: const Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.play_arrow_rounded, color: Colors.white, size: 32),
+            SizedBox(width: 8),
+            Text('Let’s play!', style: TextStyle(fontFamily: 'Nunito',
+              fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
+          ]),
+        ),
       ],
     )),
     const Expanded(flex: 9, child: Center(child: _Mascot())),
@@ -99,33 +110,6 @@ class _CompactHome extends StatelessWidget {
       _PlayButton(onTap: onPlay),
       const SizedBox(height: 8),
     ],
-  );
-}
-
-class _PlayButton extends StatelessWidget {
-  const _PlayButton({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: LearningLabTheme.teal,
-    borderRadius: BorderRadius.circular(24),
-    child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(24),
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 68, minWidth: 230),
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(24),
-          boxShadow: const [BoxShadow(color: Color(0x33218F83),
-            blurRadius: 0, offset: Offset(0, 6))]),
-        child: const Row(mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(Icons.play_arrow_rounded, color: Colors.white, size: 32),
-            SizedBox(width: 8),
-            Text('Let’s play!', style: TextStyle(fontFamily: 'Nunito',
-              fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
-          ]),
-      ),
-    ),
   );
 }
 
