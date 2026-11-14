@@ -37,60 +37,65 @@ class CategoryItemWidget extends ConsumerWidget {
       (image) => image.path.split('/').last == '${category.name}.png',
     ).path;
 
-    return Button(
-      size: Size(double.infinity, compact ? 142 : 176),
-      isElevated: false,
-      onTap: () => ref
-          .read(screenNotifier.notifier)
-          .navigate(AppScreens.dragDropGame, category),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: _cardColor,
-          borderRadius: BorderRadius.circular(LearningLabTheme.cardRadius),
-          border: Border.all(
-            color: _accentColor.withOpacity(0.18),
-            width: 1.5,
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x10263451),
-              blurRadius: 12,
-              offset: Offset(0, 5),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Button(
+          size: Size(constraints.maxWidth, constraints.maxHeight),
+          isElevated: false,
+          onTap: () => ref
+              .read(screenNotifier.notifier)
+              .navigate(AppScreens.dragDropGame, category),
+          child: Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              color: _cardColor,
+              borderRadius: BorderRadius.circular(LearningLabTheme.cardRadius),
+              border: Border.all(
+                color: _accentColor.withOpacity(0.2),
+                width: 1.5,
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x10263451),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: compact ? 10 : 16,
-            vertical: compact ? 8 : 12,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.contain,
-                  filterQuality: FilterQuality.medium,
-                ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 10 : 14,
+                vertical: compact ? 7 : 9,
               ),
-              const SizedBox(height: 5),
-              Text(
-                category.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: compact ? 18 : 21,
-                  fontWeight: FontWeight.w900,
-                  color: LearningLabTheme.ink,
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Image.asset(
+                      imagePath,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.medium,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    category.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontSize: compact ? 17 : 19,
+                      fontWeight: FontWeight.w900,
+                      color: LearningLabTheme.ink,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
