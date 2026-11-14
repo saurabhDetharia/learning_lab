@@ -5,11 +5,11 @@ class AppHelpers {
 
   static final AppHelpers instance = AppHelpers._();
 
-  /// Below used to set landscape orientation.
-  void setLandscapeMode() {
+  /// Locks LearningLab to portrait orientation.
+  void setPortraitMode() {
     SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
     ]);
   }
 
