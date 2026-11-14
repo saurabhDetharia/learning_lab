@@ -28,16 +28,18 @@ class MainMenuScreen extends ConsumerWidget {
               vertical: compact ? 10 : 24,
             ),
             child: Column(children: [
-              Align(alignment: Alignment.topRight, child: Material(
-                color: Colors.white, shape: const CircleBorder(),
-                child: InkWell(
-                  customBorder: const CircleBorder(),
+              Align(
+                alignment: Alignment.topRight,
+                child: Button(
+                  size: const Size(48, 48),
                   onTap: () => context.showSettingsDialog(),
-                  child: const SizedBox(width: 56, height: 56,
-                    child: Icon(CupertinoIcons.gear_alt_fill,
-                      color: LearningLabTheme.ink, size: 26)),
+                  child: const Icon(
+                    CupertinoIcons.gear_alt_fill,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
-              )),
+              ),
               Expanded(child: compact
                 ? _CompactHome(onPlay: () => _start(ref))
                 : _WideHome(onPlay: () => _start(ref))),
