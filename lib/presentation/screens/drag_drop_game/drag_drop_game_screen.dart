@@ -53,8 +53,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final landscape = constraints.maxWidth > constraints.maxHeight;
-            final compact = constraints.maxHeight < 500;
+            final compact = constraints.maxWidth < 500 || constraints.maxHeight < 500;
             final horizontalPadding = constraints.maxWidth < 600 ? 14.0 : 28.0;
 
             return Padding(
@@ -69,27 +68,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
                   _buildHeader(compact),
                   SizedBox(height: compact ? 8 : 16),
                   Expanded(
-                    child: landscape
-                        ? Row(
-                            children: [
-                              Expanded(child: _buildPlayArea(
-                                title: 'Pick an item',
-                                subtitle: 'Drag the right one',
-                                children: _buildDraggableItems(compact: true),
-                                accent: LearningLabTheme.sky,
-                                expand: true,
-                              )),
-                              SizedBox(width: compact ? 12 : 20),
-                              Expanded(child: _buildPlayArea(
-                                title: 'Match it here',
-                                subtitle: 'Find the matching space',
-                                children: _buildTargets(compact: true),
-                                accent: LearningLabTheme.mint,
-                                expand: true,
-                              )),
-                            ],
-                          )
-                        : SingleChildScrollView(
+                    child: SingleChildScrollView(
                             physics: const BouncingScrollPhysics(),
                             child: Column(
                               children: [
@@ -236,7 +215,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
   }
 
   List<Widget> _buildDraggableItems({required bool compact}) {
-    final tileSize = compact ? 88.0 : 104.0;
+    final tileSize = compact ? 112.0 : 132.0;
     return _draggableItems.entries.map((entry) {
       final item = entry.key;
       return AnimatedScale(
@@ -260,8 +239,8 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
   }
 
   List<Widget> _buildTargets({required bool compact}) {
-    final tileWidth = compact ? 124.0 : 148.0;
-    final tileHeight = compact ? 112.0 : 132.0;
+    final tileWidth = compact ? 112.0 : 132.0;
+    final tileHeight = tileWidth;
     return _correctTargets.entries.map((entry) {
       final target = entry.key;
       final dropped = itemDropped[target] ?? false;
@@ -312,7 +291,7 @@ class _DragDropGameScreenState extends ConsumerState<DragDropGameScreen> {
                               maxLines: 2,
                               style: TextStyle(
                                 fontFamily: FontFamily.nunito,
-                                fontSize: compact ? 16 : 19,
+                                fontSize: compact ? 13 : 16,
                                 height: 1.05,
                                 fontWeight: FontWeight.w900,
                                 color: LearningLabTheme.ink,
